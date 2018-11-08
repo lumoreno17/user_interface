@@ -12,6 +12,7 @@ import numpy as np
 import os.path
 from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
+from battery_nh2054.msg import Battery
 import datetime
 
 
@@ -30,6 +31,7 @@ class UserInterface:
         self.window.title(window_title)
 	self.background = 'white'
         self.window.configure(bg=self.background)
+
 
 	#Creating and configuring the frame
         self.frame = tkinter.Frame(self.window, bg='white', width=6*120, height=6*80+50)
@@ -65,7 +67,7 @@ class UserInterface:
         rospy.Subscriber('proximity5', DeviceInfo, self.callback_proximity5)
         rospy.Subscriber("processed_image", numpy_msg(Floats), self.show_frame)
         rospy.Subscriber("hotspot_count", Int32, self.callback_hotspot)
-        
+        rospy.Subscriber("battery_status", Battery, self.callback_battery_info)
 	
 
 
@@ -123,26 +125,26 @@ class UserInterface:
         tkinter.Label(self.canvas_ocurrences,text = "Ocurrences", font=("Helvetica", 16), bg = 'white', fg= '#284f6d').pack(side = 'top')                            
         
     def claw_canvas(self):
-	
+	#1
 	self.canvas_circle1 = tkinter.Canvas(width=16, height = 16, bg = 'white')
-	self.claw1 = self.canvas_circle1.create_oval(3, 3, 15, 15, fill = "green",width=1)
-	self.canvas_circle1.place(relx=0.488, rely=0.505, anchor="c")
-
-	self.canvas_circle2 = tkinter.Canvas(width=16, height = 16, bg = 'white')
-	self.claw2 = self.canvas_circle2.create_oval(3, 3, 15, 15, fill = "green",width=1)
-	self.canvas_circle2.place(relx=0.635, rely=0.512, anchor="c")
-
+	self.claw1 = self.canvas_circle1.create_oval(3, 3, 15, 15, fill = "red",width=1)
+	self.canvas_circle1.place(relx=0.465, rely=0.505, anchor="c")
+        #3
 	self.canvas_circle3 = tkinter.Canvas(width=16, height = 16, bg = 'white')
 	self.claw3 = self.canvas_circle3.create_oval(3, 3, 15, 15, fill = "red",width=1)
-	self.canvas_circle3.place(relx=0.81, rely=0.505, anchor="c")
-
+	self.canvas_circle3.place(relx=0.630, rely=0.512, anchor="c")
+        #5
+	self.canvas_circle5 = tkinter.Canvas(width=16, height = 16, bg = 'white')
+	self.claw5 = self.canvas_circle5.create_oval(3, 3, 15, 15, fill = "red",width=1)
+	self.canvas_circle5.place(relx=0.827, rely=0.505, anchor="c")
+        #2
+	self.canvas_circle2 = tkinter.Canvas(width=16, height = 16, bg = 'white')
+	self.claw2 = self.canvas_circle2.create_oval(3, 3, 15, 15, fill = "red",width=1)
+	self.canvas_circle2.place(relx=0.532, rely=0.505, anchor="c")
+        #4
 	self.canvas_circle4 = tkinter.Canvas(width=16, height = 16, bg = 'white')
 	self.claw4 = self.canvas_circle4.create_oval(3, 3, 15, 15, fill = "red",width=1)
-	self.canvas_circle4.place(relx=0.549, rely=0.505, anchor="c")
-
-	self.canvas_circle5 = tkinter.Canvas(width=16, height = 16, bg = 'white')
-	self.claw5 = self.canvas_circle5.create_oval(3, 3, 15, 15, fill = "green",width=1)
-	self.canvas_circle5.place(relx=0.753, rely=0.505, anchor="c")
+	self.canvas_circle4.place(relx=0.763, rely=0.505, anchor="c")
 
 
 
@@ -256,10 +258,10 @@ class UserInterface:
 	#Power Info
 	self.power = self.canvas_system_int.create_image(670, 55, image=self.power_photo, anchor=tkinter.NW)
         self.current = tkinter.Label(self.canvas_system_int,text = "Current: 10 A", font=("Helvetica", 14), bg = self.background)
-        self.current.place(relx = 0.895, rely = 0.25, anchor="c")
+        self.current.place(relx = 0.875, rely = 0.25, anchor="c")
 
-        self.consumption = tkinter.Label(self.canvas_system_int,text = "Consumo: 10 KWh", font=("Helvetica", 14), bg = self.background)
-        self.consumption.place(relx = 0.895, rely = 0.3, anchor="c")
+        # self.consumption = tkinter.Label(self.canvas_system_int,text = "Consumo: 10 KWh", font=("Helvetica", 14), bg = self.background)
+        # self.consumption.place(relx = 0.895, rely = 0.3, anchor="c")
 
 	#ELIR
 	self.elir = self.canvas_system_int.create_image(130,270, image=self.elir_photo, anchor=tkinter.NW)
@@ -280,7 +282,7 @@ class UserInterface:
     def callback_sonar(self,data_sonar):
 
         rospy.loginfo('%.2f', (data_sonar.voltage)*100)
-        self.distancia.config(text=str(round(data_sonar.voltage*100,2)) + ' m')
+        self.distancia.config(text=str(round(data_sonar.voltage*100,2)) + ' cm')
       
     def callback_proximity1(self, data_proximity):
         if data_proximity.voltage==0:
@@ -329,6 +331,7 @@ class UserInterface:
         #self.listbox.insert('end', "a list entry")
 
         if data.data > 0:
+                now = datetime.datetime.now()
                 ocurrences_data = str(hotspot_count) + " hotspot(s) detected at " + str(now.hour) + "h" + str(now.minute)
                 #print ocurrences_data
                 self.listbox.insert('end', ocurrences_data)
@@ -337,6 +340,10 @@ class UserInterface:
                 #ocurrences_data = str(hotspot_count) + " hotspot(s) detected at " + str(now.hour) + "h" + str(now.minute)
                 #print ocurrences_data
                 #self.listbox.insert('end', ocurrences_data)
+    
+    def callback_battery_info(self,data):
+	self.current.config(text=str(round(data.current,1))+' A')
+	self.batt_remain.config(text=str(round(data.capacity,1))+' Ah')
 
         
 if __name__ == '__main__':
