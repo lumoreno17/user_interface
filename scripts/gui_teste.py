@@ -13,6 +13,7 @@ import os.path
 from rospy.numpy_msg import numpy_msg
 from rospy_tutorials.msg import Floats
 from battery_nh2054.msg import Battery
+from sensor_msgs.msg import NavSatFix, Imu
 import datetime
 
 
@@ -68,6 +69,10 @@ class UserInterface:
         rospy.Subscriber("processed_image", numpy_msg(Floats), self.show_frame)
         rospy.Subscriber("hotspot_count", Int32, self.callback_hotspot)
         rospy.Subscriber("battery_status", Battery, self.callback_battery_info)
+        rospy.Subscriber("/gps/fix", NavSatFix, self.callback_GPS)
+	rospy.Subscriber("/mti/sensor/imu", Imu, self.callback_IMU)
+
+
 	
 
 
@@ -128,23 +133,23 @@ class UserInterface:
 	#1
 	self.canvas_circle1 = tkinter.Canvas(width=16, height = 16, bg = 'white')
 	self.claw1 = self.canvas_circle1.create_oval(3, 3, 15, 15, fill = "red",width=1)
-	self.canvas_circle1.place(relx=0.465, rely=0.505, anchor="c")
+	self.canvas_circle1.place(relx=0.505, rely=0.505, anchor="c")
         #3
 	self.canvas_circle3 = tkinter.Canvas(width=16, height = 16, bg = 'white')
 	self.claw3 = self.canvas_circle3.create_oval(3, 3, 15, 15, fill = "red",width=1)
-	self.canvas_circle3.place(relx=0.630, rely=0.512, anchor="c")
+	self.canvas_circle3.place(relx=0.638, rely=0.512, anchor="c")
         #5
 	self.canvas_circle5 = tkinter.Canvas(width=16, height = 16, bg = 'white')
 	self.claw5 = self.canvas_circle5.create_oval(3, 3, 15, 15, fill = "red",width=1)
-	self.canvas_circle5.place(relx=0.827, rely=0.505, anchor="c")
+	self.canvas_circle5.place(relx=0.797, rely=0.505, anchor="c")
         #2
 	self.canvas_circle2 = tkinter.Canvas(width=16, height = 16, bg = 'white')
 	self.claw2 = self.canvas_circle2.create_oval(3, 3, 15, 15, fill = "red",width=1)
-	self.canvas_circle2.place(relx=0.532, rely=0.505, anchor="c")
+	self.canvas_circle2.place(relx=0.560, rely=0.505, anchor="c")
         #4
 	self.canvas_circle4 = tkinter.Canvas(width=16, height = 16, bg = 'white')
 	self.claw4 = self.canvas_circle4.create_oval(3, 3, 15, 15, fill = "red",width=1)
-	self.canvas_circle4.place(relx=0.763, rely=0.505, anchor="c")
+	self.canvas_circle4.place(relx=0.745, rely=0.505, anchor="c")
 
 
 
@@ -249,8 +254,8 @@ class UserInterface:
         self.pitch = tkinter.Label(self.canvas_system_int,text = "Pitch: -20 +3", font=("Helvetica", 14), bg = self.background)
         self.pitch.place(relx = 0.705, rely = 0.25, anchor="c")
 
-        self.raw = tkinter.Label(self.canvas_system_int,text = "Raw: -20 +3", font=("Helvetica", 14), bg = self.background)
-        self.raw.place(relx = 0.705, rely = 0.3, anchor="c")
+        self.roll = tkinter.Label(self.canvas_system_int,text = "Roll: -20 +3", font=("Helvetica", 14), bg = self.background)
+        self.roll.place(relx = 0.705, rely = 0.3, anchor="c")
 
  	self.yaw = tkinter.Label(self.canvas_system_int,text = "Yaw: -20 +3", font=("Helvetica", 14), bg = self.background)
         self.yaw.place(relx = 0.705, rely = 0.35, anchor="c")
@@ -345,7 +350,15 @@ class UserInterface:
 	self.current.config(text=str(round(data.current,1))+' A')
 	self.batt_remain.config(text=str(round(data.capacity,1))+' Ah')
 
-        
+    def callback_GPS(self,data):
+        self.latitude.config(text="Latidude: "+str(round(data.latitude,1)))
+        self.longitude.config(text="Longitude: "+str(round(data.longitude,1)))
+            
+    def callback_IMU(self,data):
+        self.pitch.config(text="Pitch: "+str(round(data.orientation.x,3)))
+        self.roll.config(text="Roll: "+str(round(data.orientation.y,3)))
+	self.yaw.config(text="Yaw: "+str(round(data.orientation.z,3)))
+
 if __name__ == '__main__':
     
     UserInterface = UserInterface(tkinter.Tk(), "ELIR Dashboard") # Create a window and pass it to the Application object
